@@ -8,9 +8,10 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "prb-math/contracts/PRBMathSD59x18.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol"; //https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol
 
-contract YourContract {
+contract YourContract is AccessControl {
 
   using PRBMathSD59x18 for int256;
+  using SafeMath for uint; 
   
   struct Ballot {
     uint256 castAt;                         // Ballot cast block-timestamp
@@ -31,6 +32,20 @@ contract YourContract {
   uint numElections;
   mapping (uint => Election) public elections;
 
+  event Vote(address voter, uint electionId, address[] adrs, int256[] votes);
+  event ElectionCreated(address creator, uint electionId);
+  event ElectionEnded(uint electionId);
+
+  constructor() public {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+  }
+
+  modifier onlyAdmin() {
+    require( hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not Election Admin!" );
+    _;
+  }
+
+
   function newElection(string memory _note, address[] memory _adrs) public returns (uint electionId) {
 
     electionId = numElections++; 
@@ -39,6 +54,8 @@ contract YourContract {
     election.candidates = _adrs;
     election.createdAt = block.timestamp;
     election.active = true;
+
+    emit ElectionCreated(msg.sender, electionId);
 
   }
   
@@ -80,6 +97,8 @@ contract YourContract {
     }
 
     election.voted[msg.sender] = true;
+
+    emit Vote(msg.sender, electionId, _adrs, _votes);
 
   }
   
