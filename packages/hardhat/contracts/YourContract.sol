@@ -30,6 +30,10 @@ contract YourContract is AccessControl {
     mapping (address => int256) results;    // Voter to closed-election result (score ** 2)
     mapping (address => Ballot) ballots;    // Voter to cast ballot
   }
+  
+  constructor() public {
+    _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+  }
 
   event BallotCast(address voter, uint electionId, address[] adrs, int256[] votes);
   event ElectionCreated(address creator, uint electionId);
@@ -41,12 +45,8 @@ contract YourContract is AccessControl {
   uint numElections;
   mapping (uint => Election) public elections;
 
-  constructor() public {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-  }
-
   modifier onlyContractAdmin() {
-    require( hasRole(DEFAULT_ADMIN_ROLE, msg.sender),      "Address not Contract Admin!"     );
+    require( hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Address not Contract Admin!" );
     _;
   }
 
@@ -56,7 +56,7 @@ contract YourContract is AccessControl {
   }
   
   modifier onlyElectionAdmin() {
-    require( hasRole(ELECTION_ADMIN_ROLE, msg.sender),     "Address not Election Admin!"     );
+    require( hasRole(ELECTION_ADMIN_ROLE, msg.sender), "Address not Election Admin!" );
     _;
   }
 
@@ -94,7 +94,7 @@ contract YourContract is AccessControl {
 
     require( election.active, "Election Already Ended!" );
 
-    for (uint i = 0; i < election.candidates.length; i++) {
+    for ( uint i = 0; i < election.candidates.length; i++ ) {
       address candidate = election.candidates[i];
       election.results[candidate] = PRBMathSD59x18.pow(election.scores[candidate], 2);
     }
@@ -127,7 +127,7 @@ contract YourContract is AccessControl {
       votes: _votes
     }); 
 
-    for (uint i = 0; i < _adrs.length; i++) {
+    for ( uint i = 0; i < _adrs.length; i++ ) {
       election.scores[_adrs[i]] += PRBMathSD59x18.sqrt(_votes[i]);
     }
 
@@ -165,7 +165,7 @@ contract YourContract is AccessControl {
 
   // Setters
   function setElectionCandidateRoles(address[] memory _adrs) internal {
-    for (uint i = 0; i < _adrs.length; i++) { 
+    for ( uint i = 0; i < _adrs.length; i++ ) { 
       _setupRole(ELECTION_CANDIDATE_ROLE, _adrs[i]);
     }
   }
@@ -201,7 +201,7 @@ contract YourContract is AccessControl {
 
   function getElectionVotedCount(uint electionId) public view returns (uint) {
     uint count = 0;
-    for (uint i = 0; i < elections[electionId].candidates.length; i++) {
+    for ( uint i = 0; i < elections[electionId].candidates.length; i++ ) {
       if ( elections[electionId].voted[elections[electionId].candidates[i]] == true ) { 
         count++; 
       }
